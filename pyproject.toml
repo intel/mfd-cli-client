@@ -12,7 +12,7 @@ dependencies = { file = ["requirements.txt"] }
 name = "mfd-cli-client"
 description = "Module for cli_client (command line interface client) utility for the Intel® Infrastructure Processing Unit (Intel® IPU)."
 requires-python = ">=3.10, <3.14"
-version = "1.10.0"
+version = "1.11.0"
 dynamic = ["dependencies"]
 license-files = ["LICENSE.md", "AUTHORS.md"]
 readme = {file = "README.md", content-type = "text/markdown"}
