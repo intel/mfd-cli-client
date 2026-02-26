@@ -16,6 +16,7 @@ from mfd_cli_client.base import (
     VSIFlowStats,
     VSIStats,
 )
+from mfd_cli_client.exceptions import CliClientException
 from mfd_typing import OSName, MACAddress
 
 
@@ -704,6 +705,37 @@ class TestCliClient:
             mocker.call(command="--modify --config --mir_prof 16 --vsi 1 --func_valid"),
         ]
         assert cli_client.execute_cli_client_command.mock_calls == cmd
+
+    def test_create_mirror_profile_random_profile_set_success(self, cli_client, mocker):
+        output = dedent(
+            """\
+        No IP address specified, defaulting to localhost
+        random mirror profile set.
+
+        server finished responding ======================="""
+        )
+        cli_client.execute_cli_client_command = mocker.create_autospec(
+            cli_client.execute_cli_client_command, return_value=output
+        )
+        cli_client.create_mirror_profile(profile_id=16, vsi_id=1)
+        cmd = [
+            mocker.call(command="--modify --config --mir_prof 16 --vsi 1 --func_valid"),
+        ]
+        assert cli_client.execute_cli_client_command.mock_calls == cmd
+
+    def test_create_mirror_profile_failure_output_raises(self, cli_client, mocker):
+        output = dedent(
+            """\
+        No IP address specified, defaulting to localhost
+        mirror profile set failed
+
+        server finished responding ======================="""
+        )
+        cli_client.execute_cli_client_command = mocker.create_autospec(
+            cli_client.execute_cli_client_command, return_value=output
+        )
+        with pytest.raises(CliClientException):
+            cli_client.create_mirror_profile(profile_id=16, vsi_id=1)
 
     def test_add_psm_vm_rl(self, cli_client, mocker):
         output = dedent(
