@@ -103,6 +103,10 @@ class CliClient(ToolTemplate):
 
     tool_executable_name = "cli_client"
     ALL_USER_PRIORITY_TRAFFIC_CLASS = 8
+    _MIRROR_PROFILE_SUCCESS_MARKERS = (
+        "command succeeded",
+        "random mirror profile set",
+    )
 
     __init__ = os_supported(OSName.LINUX)(ToolTemplate.__init__)
 
@@ -563,7 +567,8 @@ class CliClient(ToolTemplate):
 
         cmd = f"--modify --config --mir_prof {profile_id} --vsi {vsi_id} --func_valid"
         output = self.execute_cli_client_command(command=cmd)
-        if "command succeeded" in output.lower():
+        output_lower = output.lower()
+        if any(marker in output_lower for marker in self._MIRROR_PROFILE_SUCCESS_MARKERS):
             logger.log(level=log_levels.MODULE_DEBUG, msg=f"Mirror profile ({cmd}) passed.")
         else:
             raise CliClientException(f"Mirror profile ({cmd}) failed.")
