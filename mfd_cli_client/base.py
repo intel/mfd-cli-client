@@ -573,6 +573,24 @@ class CliClient(ToolTemplate):
         else:
             raise CliClientException(f"Mirror profile ({cmd}) failed.")
 
+    def delete_mirror_profile(self, profile_id: int, vsi_id: int) -> None:
+        """
+        Disable mirror profile by clearing func_valid for a specific profile/vsi mapping.
+
+        :param profile_id: Mirror profile id (must be >= 16)
+        :param vsi_id: VSI id currently configured on the mirror profile
+        """
+        if profile_id < 16:
+            raise CliClientException(f"Mirror profile id {profile_id} must be >=16. Profiles < 16 are reserved.")
+
+        cmd = f"--modify --config --mir_prof {profile_id} --vsi {vsi_id}"
+        output = self.execute_cli_client_command(command=cmd)
+        output_lower = output.lower()
+        if any(marker in output_lower for marker in self._MIRROR_PROFILE_SUCCESS_MARKERS):
+            logger.log(level=log_levels.MODULE_DEBUG, msg=f"Mirror profile delete ({cmd}) passed.")
+        else:
+            raise CliClientException(f"Mirror profile delete ({cmd}) failed.")
+
     def add_psm_vm_rl(self, vm_id: Union[int, str] = 1, limit: int = 10000, burst: int = 2048) -> None:
         """
         Add a VM rate limit in the LAN PSM/Work Scheduler tree.
