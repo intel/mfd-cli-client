@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.13.0 (2026-11-04)
+
+### Chores
+
+- Bump pytest and mfd-code-quality requirements
+  ([`24eff31`](https://github.com/intel/mfd-cli-client/commit/24eff31648d0500099e18cabedb3fa3de21499ad))
+
+### Features
+
+- Add support for multihost configuration
+  ([`b3e907f`](https://github.com/intel/mfd-cli-client/commit/b3e907f096458fc8ffb5d44a18abf2708fc53090))
+
+
 ## v1.12.0 (2026-03-16)
 
 ### Bug Fixes
