@@ -55,20 +55,36 @@ class TestCliClient:
 
         assert cli_client.add_psm_vm_node.call_count == 2
         calls = [
-            mocker.call(vm_id=0),
-            mocker.call(vm_id=1),
+            mocker.call(vm_id=0, host_id=0),
+            mocker.call(vm_id=1, host_id=0),
         ]
         assert cli_client.add_psm_vm_node.mock_calls == calls
 
         assert cli_client.add_vf_to_vm_node.call_count == 5
         calls = [
-            mocker.call(vm_id=0, vf_id=0),
-            mocker.call(vm_id=0, vf_id=1),
-            mocker.call(vm_id=1, vf_id=2),
-            mocker.call(vm_id=1, vf_id=3),
-            mocker.call(vm_id=1, vf_id=4),
+            mocker.call(vm_id=0, vf_id=0, host_id=0),
+            mocker.call(vm_id=0, vf_id=1, host_id=0),
+            mocker.call(vm_id=1, vf_id=2, host_id=0),
+            mocker.call(vm_id=1, vf_id=3, host_id=0),
+            mocker.call(vm_id=1, vf_id=4, host_id=0),
         ]
         assert cli_client.add_vf_to_vm_node.mock_calls == calls
+
+    def test_add_group_vf2vm_host_id(self, cli_client, mocker):
+        cli_client.add_psm_vm_node = mocker.create_autospec(cli_client.add_psm_vm_node)
+        cli_client.add_vf_to_vm_node = mocker.create_autospec(cli_client.add_vf_to_vm_node)
+
+        cli_client.add_group_vf2vm({1: [0, 1], -1: [2]}, host_id=1)
+
+        assert cli_client.add_psm_vm_node.mock_calls == [
+            mocker.call(vm_id=1, host_id=1),
+            mocker.call(vm_id=-1, host_id=1),
+        ]
+        assert cli_client.add_vf_to_vm_node.mock_calls == [
+            mocker.call(vm_id=1, vf_id=0, host_id=1),
+            mocker.call(vm_id=1, vf_id=1, host_id=1),
+            mocker.call(vm_id=-1, vf_id=2, host_id=1),
+        ]
 
     def test_get_switch_stats(self, cli_client):
         output = dedent(
@@ -401,6 +417,13 @@ class TestCliClient:
         ]
         assert cli_client.execute_cli_client_command.mock_calls == cmd
 
+        cli_client.execute_cli_client_command.reset_mock()
+        cli_client.add_psm_vm_node(vm_id=1, host_id=1)
+        cmd = [
+            mocker.call(command="-b psm -m -c -H 1 --vmid 1"),
+        ]
+        assert cli_client.execute_cli_client_command.mock_calls == cmd
+
     def test_add_vf_to_vm_node(self, cli_client, mocker):
         output = dedent(
             """\
@@ -427,6 +450,12 @@ class TestCliClient:
         cli_client.add_vf_to_vm_node(vm_id="0xa", vf_id="0x4")
         cmd = [
             mocker.call(command="-b psm -m -c -H 0 --vfid 0x4 --vmid 0xa"),
+        ]
+        assert cli_client.execute_cli_client_command.mock_calls == cmd
+        cli_client.execute_cli_client_command.reset_mock()
+        cli_client.add_vf_to_vm_node(vm_id=1, vf_id=0, host_id=3)
+        cmd = [
+            mocker.call(command="-b psm -m -c -H 3 --vfid 0 --vmid 1"),
         ]
         assert cli_client.execute_cli_client_command.mock_calls == cmd
 
@@ -799,6 +828,13 @@ class TestCliClient:
         cli_client.add_psm_vm_rl(vm_id=2, limit=500000, burst=4096)
         cmd = [
             mocker.call(command="-b psm -m -c -H 0 --vmid 2 -l 500000 -u 4096"),
+        ]
+        assert cli_client.execute_cli_client_command.mock_calls == cmd
+
+        cli_client.execute_cli_client_command.reset_mock()
+        cli_client.add_psm_vm_rl(vm_id=1, limit=18889000, burst=2048, host_id=1)
+        cmd = [
+            mocker.call(command="-b psm -m -c -H 1 --vmid 1 -l 18889000 -u 2048"),
         ]
         assert cli_client.execute_cli_client_command.mock_calls == cmd
 

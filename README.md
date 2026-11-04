@@ -49,11 +49,11 @@ logger.info(f"VSI list entries: {vsi_list}")
 
 `prepare_vm_vsi(self, vf_amount: Union[int, str] = 1) -> None` - For vf_amount VFs, create a VM node and map each VF to a VM node (vf0:vm1, vf1:vm2 ...).
 
-`add_psm_vm_node(self, vm_id: Union[int, str] = 1) -> None` - Creates a VM node in the PSM tree with vm_id.
+`add_psm_vm_node(self, vm_id: Union[int, str] = 1, host_id: int = 0) -> None` - Creates a VM node in the PSM tree with vm_id on host host_id.
 
-`add_group_vf2vm(self, psm_vf2vm: Dict[int, List[int]]) -> None:` - From a Dict containing VMs each with a list of VFs, create full vf2vm topology in PSM.
+`add_group_vf2vm(self, psm_vf2vm: Dict[int, List[int]], host_id: int = 0) -> None:` - From a Dict containing VMs each with a list of VFs, create full vf2vm topology in PSM on host host_id.
 
-`add_vf_to_vm_node(self, vf_id: Union[int, str] = 0, vm_id: Union[int, str] = 1) -> None` - Attaches a VF to a VM node in the PSM tree.
+`add_vf_to_vm_node(self, vf_id: Union[int, str] = 0, vm_id: Union[int, str] = 1, host_id: int = 0) -> None` - Attaches a VF to a VM node in the PSM tree on host host_id.
 
 `find_vf_vsi(self, vf_amount: int = 1) -> Dict` - Find VSI per VF.
 
@@ -82,7 +82,7 @@ logger.info(f"VSI list entries: {vsi_list}")
 
 `create_mirror_profile(self, profile_id: int, vsi_id: int) -> None:` - Create mirror profile to mirror packets to the specified vsi
 
-`add_psm_vm_rl(self, vm_id: Union[int, str] = 1, limit: int = 10000, burst: int = 2048) -> None` - Create mirror profile to mirror packets to the specified vsi
+`add_psm_vm_rl(self, vm_id: Union[int, str] = 1, limit: int = 10000, burst: int = 2048, host_id: int = 0) -> None` - Set PSM VM rate limit and burst on vm_id of host host_id.
 
 `read_qos_vm_info(self) -> Dict[int, Dict[int, List[int]]]` - Query VF2VM mapping and return a dict of host keys, with values of dict of vm keys with list of vsi indexes. Or nothing if they dont exist.
 

@@ -258,27 +258,29 @@ class CliClient(ToolTemplate):
 
         return VSIStats(rx_stats, tx_stats)
 
-    def add_group_vf2vm(self, psm_vf2vm: Dict[int, List[int]]) -> None:
+    def add_group_vf2vm(self, psm_vf2vm: Dict[int, List[int]], host_id: int = 0) -> None:
         """Create a full vf2vm topology in PSM from a dictionary.
 
         :param psm_vf2vm: Dictionary of VMs to create and list of Vfs to assign to VMs.
         :type psm_vf2vm: Dict[int, List[int]]
+        :param host_id: Host id the VM nodes and VFs belong to.
         :raises CliClientException: on failure
         """
         for vmid in psm_vf2vm.keys():
-            logger.log(level=log_levels.MODULE_DEBUG, msg=f"Creating PSM VM node {vmid}")
-            self.add_psm_vm_node(vm_id=vmid)
+            logger.log(level=log_levels.MODULE_DEBUG, msg=f"Creating PSM VM node {vmid} on host {host_id}")
+            self.add_psm_vm_node(vm_id=vmid, host_id=host_id)
 
         for vmid, vfs in psm_vf2vm.items():
             for vf in vfs:
-                logger.log(level=log_levels.MODULE_DEBUG, msg=f"Mapping VF: {vf} to VM node: {vmid}")
-                self.add_vf_to_vm_node(vm_id=vmid, vf_id=vf)
+                logger.log(level=log_levels.MODULE_DEBUG, msg=f"Mapping VF: {vf} to VM node: {vmid} on host {host_id}")
+                self.add_vf_to_vm_node(vm_id=vmid, vf_id=vf, host_id=host_id)
 
-    def add_psm_vm_node(self, vm_id: Union[int, str] = 1) -> None:
+    def add_psm_vm_node(self, vm_id: Union[int, str] = 1, host_id: int = 0) -> None:
         """
         Add a VM node in the LAN PSM/Work Scheduler tree.
 
         :param vm_id: VM node id/index. If hex string, then hex string is sent to cli_client.
+        :param host_id: Host id the VM node belongs to.
         :raises CliClientException: on failure
         """
         if isinstance(vm_id, str):
@@ -287,17 +289,21 @@ class CliClient(ToolTemplate):
             except ValueError:
                 raise CliClientException("Cannot parse int from hex string")
 
-        output = self.execute_cli_client_command(command=f"-b psm -m -c -H 0 --vmid {vm_id}")
+        output = self.execute_cli_client_command(command=f"-b psm -m -c -H {host_id} --vmid {vm_id}")
         if "command succeeded" in output.lower():
-            logger.log(level=log_levels.MODULE_DEBUG, msg=f"Successfully add PSM VM node id: {vm_id}.")
+            logger.log(
+                level=log_levels.MODULE_DEBUG, msg=f"Successfully add PSM VM node id: {vm_id} on host {host_id}."
+            )
         else:
-            raise CliClientException(f"Error adding PSM VM node id: {vm_id}")
+            raise CliClientException(f"Error adding PSM VM node id: {vm_id} on host {host_id}")
 
-    def add_vf_to_vm_node(self, vf_id: Union[int, str] = 0, vm_id: Union[int, str] = 1) -> None:
+    def add_vf_to_vm_node(self, vf_id: Union[int, str] = 0, vm_id: Union[int, str] = 1, host_id: int = 0) -> None:
         """
         Add a VF to a VM node in the LAN PSM/Work Scheduler tree.
 
         :param vf_id: VF node id/index. If hex string, hex is sent to cli_client command.
+        :param vm_id: VM node id/index. If hex string, hex is sent to cli_client command.
+        :param host_id: Host id the VF and VM node belong to.
         :raises CliClientException: on failure
         """
         if isinstance(vm_id, str):
@@ -311,11 +317,14 @@ class CliClient(ToolTemplate):
             except ValueError:
                 raise CliClientException("Cannot parse int from hex string")
 
-        output = self.execute_cli_client_command(command=f"-b psm -m -c -H 0 --vfid {vf_id} --vmid {vm_id}")
+        output = self.execute_cli_client_command(command=f"-b psm -m -c -H {host_id} --vfid {vf_id} --vmid {vm_id}")
         if "command succeeded" in output.lower():
-            logger.log(level=log_levels.MODULE_DEBUG, msg=f"Successfully add VF {vf_id} to VM node id {vm_id}.")
+            logger.log(
+                level=log_levels.MODULE_DEBUG,
+                msg=f"Successfully add VF {vf_id} to VM node id {vm_id} on host {host_id}.",
+            )
         else:
-            raise CliClientException(f"Error adding VF {vf_id} to VM node id {vm_id}")
+            raise CliClientException(f"Error adding VF {vf_id} to VM node id {vm_id} on host {host_id}")
 
     def prepare_vm_vsi(self, vf_amount: Union[int, str] = 1) -> None:
         """
@@ -591,13 +600,16 @@ class CliClient(ToolTemplate):
         else:
             raise CliClientException(f"Mirror profile delete ({cmd}) failed.")
 
-    def add_psm_vm_rl(self, vm_id: Union[int, str] = 1, limit: int = 10000, burst: int = 2048) -> None:
+    def add_psm_vm_rl(
+        self, vm_id: Union[int, str] = 1, limit: int = 10000, burst: int = 2048, host_id: int = 0
+    ) -> None:
         """
         Add a VM rate limit in the LAN PSM/Work Scheduler tree.
 
         :param vm_id: VM node id/index. If hex string, then hex string is sent to cli_client.
         :param limit: Rate limit amount.
         :param burst: Burst amount.
+        :param host_id: Host id the VM node belongs to.
         :raises CliClientException: on failure
         """
         if isinstance(vm_id, str):
@@ -606,11 +618,18 @@ class CliClient(ToolTemplate):
             except ValueError:
                 raise CliClientException("Cannot parse int from hex string")
 
-        output = self.execute_cli_client_command(command=f"-b psm -m -c -H 0 --vmid {vm_id} -l {limit} -u {burst}")
+        output = self.execute_cli_client_command(
+            command=f"-b psm -m -c -H {host_id} --vmid {vm_id} -l {limit} -u {burst}"
+        )
         if "command succeeded" in output.lower():
-            logger.log(level=log_levels.MODULE_DEBUG, msg=f"Successfully added {limit} rate limit on vmid: {vm_id}.")
+            logger.log(
+                level=log_levels.MODULE_DEBUG,
+                msg=f"Successfully added {limit} rate limit on vmid: {vm_id} host: {host_id}.",
+            )
         else:
-            raise CliClientException(f"Error adding PSM VM ratelimit on vmid: {vm_id} rate: {limit} burst: {burst}")
+            raise CliClientException(
+                f"Error adding PSM VM ratelimit on vmid: {vm_id} host: {host_id} rate: {limit} burst: {burst}"
+            )
 
     def read_qos_vm_info(self) -> Dict[int, Dict[int, List[int]]]:
         """
